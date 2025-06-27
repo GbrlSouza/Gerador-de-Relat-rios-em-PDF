@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Gerador de Relatórios em PDF</title>
+  
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .report-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .report-header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: #f1f1f1;
+            font-weight: 600;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .custom-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="report-header text-center mb-4">
+                    <h1 class="text-3xl font-bold mb-2"><i class="fas fa-chart-line me-2"></i>Gerador de Relatórios</h1>
+                    <p class="mb-0">Crie e exporte relatórios personalizados em PDF</p>
+                </div>
+
+                <div class="card custom-shadow border-0 mb-4">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl font-semibold mb-4"><i class="fas fa-cog me-2"></i>Configurações do Relatório</h2>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="reportTitle" class="form-label">Título do Relatório</label>
+                                <input type="text" class="form-control" id="reportTitle" value="Relatório de Desempenho">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="reportPeriod" class="form-label">Período</label>
+                                <select class="form-select" id="reportPeriod">
+                                    <option value="monthly">Mensal</option>
+                                    <option value="quarterly">Trimestral</option>
+                                    <option value="yearly" selected>Anual</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="chartType1" class="form-label">Tipo de Gráfico 1</label>
+                                <select class="form-select" id="chartType1">
+                                    <option value="bar">Barras</option>
+                                    <option value="line" selected>Linhas</option>
+                                    <option value="pie">Pizza</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="chartType2" class="form-label">Tipo de Gráfico 2</label>
+                                <select class="form-select" id="chartType2">
+                                    <option value="bar" selected>Barras</option>
+                                    <option value="line">Linhas</option>
+                                    <option value="pie">Pizza</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="colorScheme" class="form-label">Esquema de Cores</label>
+                                <select class="form-select" id="colorScheme">
+                                    <option value="default">Padrão</option>
+                                    <option value="vibrant">Vibrante</option>
+                                    <option value="pastel">Pastel</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-section mb-4">
+                    <h2 class="text-xl font-semibold mb-4"><i class="fas fa-chart-pie me-2"></i>Visualização de Dados</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <canvas id="chart1"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="chart-container">
+                                <canvas id="chart2"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <h3 class="text-lg font-medium mb-3"><i class="fas fa-table me-2"></i>Tabela de Dados</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mês</th>
+                                    <th>Vendas</th>
+                                    <th>Clientes</th>
+                                    <th>Receita (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <h2 class="text-xl font-semibold mb-4"><i class="fas fa-comment me-2"></i>Análise e Comentários</h2>
+                    <div class="mb-3">
+                        <label for="reportAnalysis" class="form-label">Análise do Relatório</label>
+                        <textarea class="form-control" id="reportAnalysis" rows="5">O relatório mostra um crescimento consistente nas vendas ao longo do ano, com picos nos meses de novembro e dezembro devido às vendas de fim de ano. A estratégia de marketing implementada no terceiro trimestre mostrou resultados positivos, com aumento de 15% nas vendas em comparação com o mesmo período do ano anterior.</textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button id="previewBtn" class="btn btn-primary">
+                        <i class="fas fa-eye me-2"></i>Visualizar Relatório
+                    </button>
+                    <button id="exportBtn" class="btn btn-success">
+                        <i class="fas fa-file-pdf me-2"></i>Exportar para PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Pré-visualização do Relatório</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="pdfPreview" class="p-3 bg-white">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button id="exportFromPreviewBtn" type="button" class="btn btn-success">
+                        <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+      
+        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const salesData = [120, 190, 170, 220, 250, 210, 240, 280, 300, 320, 450, 500];
+        const customersData = [50, 70, 90, 80, 100, 95, 110, 120, 130, 140, 180, 200];
+        const revenueData = [24000, 38000, 34000, 44000, 50000, 42000, 48000, 56000, 60000, 64000, 90000, 100000];
+        
+        let chart1, chart2;
+        
+        function generateColors(count, scheme = 'default') {
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                if (scheme === 'vibrant') {
+                    colors.push(`hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`);
+                } else if (scheme === 'pastel') {
+                    colors.push(`hsl(${Math.floor(Math.random() * 360)}, 100%, 85%)`);
+                } else {
+                    const defaultColors = [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                        '#5a5c69', '#2e59d9', '#17a673', '#2c9faf', '#dda20a',
+                        '#be2617', '#858796'
+                    ];
+                
+                    colors.push(defaultColors[i % defaultColors.length]);
+                }
+            }
+            return colors;
+        }
+        
+        function updateCharts() {
+            const chartType1 = document.getElementById('chartType1').value;
+            const chartType2 = document.getElementById('chartType2').value;
+            const colorScheme = document.getElementById('colorScheme').value;
+            
+            const colors1 = generateColors(12, colorScheme);
+            const colors2 = generateColors(2, colorScheme);
+            
+            if (chart1) chart1.destroy();
+            if (chart2) chart2.destroy();
+            
+            const ctx1 = document.getElementById('chart1').getContext('2d');
+          
+            chart1 = new Chart(ctx1, {
+                type: chartType1,
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Vendas por Mês',
+                        data: salesData,
+                        backgroundColor: chartType1 === 'pie' ? colors1 : colors1[0],
+                        borderColor: '#4e73df',
+                        borderWidth: 1
+                    }]
+                },
+              
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Vendas Mensais'
+                        }
+                    }
+                }
+            });
+            
+            const ctx2 = document.getElementById('chart2').getContext('2d');
+            chart2 = new Chart(ctx2, {
+                type: chartType2,
+                data: {
+                    labels: ['Primeiro Semestre', 'Segundo Semestre'],
+                    datasets: [{
+                        label: 'Vendas',
+                        data: [
+                            salesData.slice(0, 6).reduce((a, b) => a + b, 0),
+                            salesData.slice(6).reduce((a, b) => a + b, 0)
+                        ],
+                        backgroundColor: chartType2 === 'pie' ? colors2 : colors2,
+                        borderColor: ['#1cc88a', '#36b9cc'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Comparação de Semestres'
+                        }
+                    }
+                }
+            });
+        }
+      
+        function populateDataTable() {
+            const tableBody = document.getElementById('dataTableBody');
+            tableBody.innerHTML = '';
+            
+            for (let i = 0; i < months.length; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${months[i]}</td>
+                    <td>${salesData[i]}</td>
+                    <td>${customersData[i]}</td>
+                    <td>R$ ${revenueData[i].toLocaleString('pt-BR')}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+        
+        function generatePDFPreview() {
+            const previewContainer = document.getElementById('pdfPreview');
+            const reportTitle = document.getElementById('reportTitle').value;
+            const reportPeriod = document.getElementById('reportPeriod').value;
+            const reportAnalysis = document.getElementById('reportAnalysis').value;
+            
+            const currentDate = new Date();
+            const formattedDate = currentDate.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            
+            previewContainer.innerHTML = `
+                <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #2e59d9; margin-bottom: 5px;">${reportTitle}</h1>
+                        <p style="color: #6c757d; margin-bottom: 15px;">Relatório ${reportPeriod === 'monthly' ? 'Mensal' : reportPeriod === 'quarterly' ? 'Trimestral' : 'Anual'}</p>
+                        <p style="color: #6c757d;">Gerado em: ${formattedDate}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h2 style="color: #2e59d9; border-bottom: 2px solid #2e59d9; padding-bottom: 5px;">Resumo Executivo</h2>
+                        <p>${reportAnalysis}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h2 style="color: #2e59d9; border-bottom: 2px solid #2e59d9; padding-bottom: 5px;">Gráficos de Desempenho</h2>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                            <div style="width: 48%;">
+                                <img id="chart1Img" style="width: 100%; height: auto;">
+                            </div>
+                            <div style="width: 48%;">
+                                <img id="chart2Img" style="width: 100%; height: auto;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h2 style="color: #2e59d9; border-bottom: 2px solid #2e59d9; padding-bottom: 5px;">Dados Detalhados</h2>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                            <thead>
+                                <tr style="background-color: #f1f1f1;">
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Mês</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Vendas</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Clientes</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Receita (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="previewTableBody">
+                                ${months.map((month, i) => `
+                                    <tr>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">${month}</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">${salesData[i]}</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">${customersData[i]}</td>
+                                        <td style="border: 1px solid #ddd; padding: 8px;">R$ ${revenueData[i].toLocaleString('pt-BR')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="margin-top: 40px; text-align: center; color: #6c757d; font-size: 12px;">
+                        <p>Relatório gerado automaticamente pelo Sistema de Análise de Dados</p>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const canvas1 = document.getElementById('chart1');
+                const canvas2 = document.getElementById('chart2');
+                
+                const dataURL1 = canvas1.toDataURL('image/png');
+                const dataURL2 = canvas2.toDataURL('image/png');
+                
+                document.getElementById('chart1Img').src = dataURL1;
+                document.getElementById('chart2Img').src = dataURL2;
+            }, 500);
+        }
+        
+        async function exportToPDF() {
+            const reportTitle = document.getElementById('reportTitle').value;
+            const reportPeriod = document.getElementById('reportPeriod').value;
+            const reportAnalysis = document.getElementById('reportAnalysis').value;
+            
+            const currentDate = new Date();
+            const formattedDate = currentDate.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            
+            const doc = new jsPDF('p', 'pt', 'a4');
+            
+            doc.setFontSize(20);
+            doc.setTextColor(46, 89, 217);
+            doc.text(reportTitle, 40, 50);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(108, 117, 125);
+          
+            doc.text(`Relatório ${reportPeriod === 'monthly' ? 'Mensal' : reportPeriod === 'quarterly' ? 'Trimestral' : 'Anual'}`, 40, 70);
+            doc.text(`Gerado em: ${formattedDate}`, 40, 90);
+            
+            doc.setFontSize(14);
+            doc.setTextColor(46, 89, 217);
+            doc.text('Resumo Executivo', 40, 120);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+          
+            const splitAnalysis = doc.splitTextToSize(reportAnalysis, 500);
+          
+            doc.text(splitAnalysis, 40, 140);
+            
+            let yPosition = 140 + (splitAnalysis.length * 15) + 20;
+            
+            doc.setFontSize(14);
+            doc.setTextColor(46, 89, 217);
+            doc.text('Gráficos de Desempenho', 40, yPosition);
+          
+            yPosition += 20;
+            
+            const canvas1 = document.getElementById('chart1');
+            const canvas2 = document.getElementById('chart2');
+            
+            const chart1Img = await getCanvasImage(canvas1);
+            const chart2Img = await getCanvasImage(canvas2);
+            
+            const chartWidth = 240;
+            const chartHeight = 160;
+            
+            doc.addImage(chart1Img, 'PNG', 40, yPosition, chartWidth, chartHeight);
+            doc.addImage(chart2Img, 'PNG', 40 + chartWidth + 20, yPosition, chartWidth, chartHeight);
+            
+            yPosition += chartHeight + 30;
+            
+            doc.setFontSize(14);
+            doc.setTextColor(46, 89, 217);
+            doc.text('Dados Detalhados', 40, yPosition);
+            yPosition += 20;
+            
+            const tableData = months.map((month, i) => [
+                month,
+                salesData[i],
+                customersData[i],
+                `R$ ${revenueData[i].toLocaleString('pt-BR')}`
+            ]);
+            
+            doc.autoTable({
+                startY: yPosition,
+                head: [['Mês', 'Vendas', 'Clientes', 'Receita (R$)']],
+                body: tableData,
+                margin: { left: 40 },
+                styles: {
+                    cellPadding: 5,
+                    fontSize: 10,
+                    valign: 'middle'
+                },
+                headStyles: {
+                    fillColor: [241, 241, 241],
+                    textColor: [0, 0, 0],
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [249, 249, 249]
+                }
+            });
+            
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(10);
+                doc.setTextColor(108, 117, 125);
+                doc.text(`Página ${i} de ${pageCount}`, 40, doc.internal.pageSize.height - 20);
+                doc.text('Relatório gerado automaticamente pelo Sistema de Análise de Dados', 
+                    doc.internal.pageSize.width - 40, doc.internal.pageSize.height - 20, 
+                    { align: 'right' });
+            }
+            
+            doc.save(`${reportTitle.replace(/\s+/g, '_')}_${formattedDate.replace(/\//g, '-')}.pdf`);
+        }
+        
+        function getCanvasImage(canvas) {
+            return new Promise((resolve) => {
+                html2canvas(canvas).then(canvas => {
+                    resolve(canvas.toDataURL('image/png'));
+                });
+            });
+        }
+        
+        document.getElementById('chartType1').addEventListener('change', updateCharts);
+        document.getElementById('chartType2').addEventListener('change', updateCharts);
+        document.getElementById('colorScheme').addEventListener('change', updateCharts);
+        
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            generatePDFPreview();
+            const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+            previewModal.show();
+        });
+        
+        document.getElementById('exportBtn').addEventListener('click', exportToPDF);
+        document.getElementById('exportFromPreviewBtn').addEventListener('click', exportToPDF);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCharts();
+            populateDataTable();
+        });
+    </script>
+</body>
+</html>
